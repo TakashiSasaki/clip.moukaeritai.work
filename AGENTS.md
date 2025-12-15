@@ -33,9 +33,9 @@ https://clip.moukaeritai.work/index.html は同じディレクトリにある in
 
 クリップボードの各アイテムは https://clip.moukaeritai.work/<UUIDv4>/<key> という形式で提供する。
 https://clip.moukaeritai.work/<UUIDv4>/<key> に任意の文字列をPUTできる。
-https://clip.moukaeritai.work/<UUIDv4>/<key> から文字列をGETできる。
+https://clip.moukaeritai.work/<UUIDv4>/<key> から文字列をGETできる。この際の Content-Type は text/plain 固定とする。
 https://clip.moukaeritai.work/<UUIDv4>/<key> をDELETEできる。
-https://clip.moukaeritai.work/<UUIDv4> に文字列をPOSTしたときには、その文字列のSHA1ハッシュ値が自動的にkeyとして採用される。POSTのレスポンスにはそのkeyが含まれる。
+https://clip.moukaeritai.work/<UUIDv4> に文字列をPOSTしたときには、その文字列のSHA1ハッシュ値が自動的にkeyとして採用される。POSTのレスポンスはJSON形式でキーを返却する。
 つまりREST APIも提供する。
 
 # データ制約
