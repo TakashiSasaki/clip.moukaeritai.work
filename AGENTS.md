@@ -12,7 +12,11 @@
 *   **パッケージ管理**: Poetry
 *   **データベース**: SQLite (サーバーレス、単一ファイル)
 
-## 3. アーキテクチャとインフラ (Architecture & Infrastructure)
+## 3. ディレクトリ構造 (Directory Structure)
+*   `app/`: アプリケーションロジック (`main.py`, `database.py`, `config.py`, `utils.py`)
+*   `static/`: 静的コンテンツ (`index.html`, `index.md`, `openapi.html`, `test.html`, `status.html`)
+
+## 4. アーキテクチャとインフラ (Architecture & Infrastructure)
 *   **リバースプロキシ**: Apache が前段に配置される。
     *   TLS終端は Apache が行う。
     *   Apache からアプリケーションへは `8000/tcp` で平文接続される。
@@ -20,7 +24,7 @@
 *   **セキュリティ設定**:
     *   HTTPS だけでなく HTTP での通信も許容する。
 
-## 4. 認証とセキュリティモデル (Auth & Security Model)
+## 5. 認証とセキュリティモデル (Auth & Security Model)
 *   **認証**: なし (No Authentication)
 *   **セキュリティモデル**:
     *   ユーザーが生成した **UUIDv4** をURLに含めることでアクセス制御を行う。
@@ -28,7 +32,7 @@
     *   アプリケーション側で UUID の **Version (4)** と **Variant (RFC 4122)** を厳格に検証すること。
     *   UUIDv4 の予測不可能性のみに依存するセキュリティモデルである。
 
-## 5. API仕様 (REST API)
+## 6. API仕様 (REST API)
 
 ### ランディングページ
 *   **URL**: `https://clip.moukaeritai.work/index.html`
@@ -48,12 +52,17 @@
 
 ### 管理・その他 API
 *   **Status**: `https://clip.moukaeritai.work/status`
-    *   動作確認用エンドポイント。表示内容は未定。
+    *   動作確認用エンドポイント。
+    *   レスポンス: バージョン、稼働時間(uptime)、DB統計情報(総アイテム数、UUID数、サイズ)を含むJSON。
+*   **Static Pages**:
+    *   `/openapi.html`: Swagger UI による API ドキュメント。
+    *   `/test.html`: API 動作テストおよび自動テストスイート。
+    *   `/status.html`: システムステータスのグラフィカルダッシュボード。
 *   **MCP**: `https://clip.moukaeritai.work/mcp`
     *   Model Context Protocol (MCP) 向けのエンドポイント。
     *   標準仕様に従ってツール等の定義を実装する。
 
-## 6. データ制約とエラーハンドリング (Constraints & Error Handling)
+## 7. データ制約とエラーハンドリング (Constraints & Error Handling)
 コード内にハードコードせず、設定可能な定数として扱うこと。
 
 *   **文字コード**: UTF-8
@@ -68,9 +77,9 @@
     *   エラー詳細: JSON形式でレスポンスする。
     *   *Note*: エラーおよびPOST成功時のJSONスキーマは実装時に決定する。
 
-## 7. データベース運用 (Database Operations)
+## 8. データベース運用 (Database Operations)
 *   定期的なクリーンアップが行われるが、ロジックはこのアプリケーション**外**のプロセス (cron等) が担当する。
 *   本アプリケーションにはクリーンアップ機能を実装しない。
 
-## 8. 開発上の注意 (Development Notes)
+## 9. 開発上の注意 (Development Notes)
 *   **FQDN**: `localhost` でのテストを容易にするため、コード内にFQDN (`clip.moukaeritai.work`) をハードコードしない。
