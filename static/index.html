@@ -173,6 +173,27 @@
             font-size: 0.8rem;
             opacity: 0.4;
         }
+
+        .nav-links {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+
+        .nav-links a {
+            font-weight: 600;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+            color: #fff;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
     </style>
 </head>
 
@@ -181,28 +202,35 @@
     <div class="bg-shape shape-2"></div>
 
     <div class="container">
-        <div class="glass-card" id="content">
-            <!-- Content will be injected here -->
-            <div style="text-align:center; padding: 2rem;">Loading documentation...</div>
+        <div class="glass-card">
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="openapi.html">API Docs</a>
+                <a href="status.html">Status</a>
+                <a href="test.html">Test</a>
+            </nav>
+            <div id="content">
+                <!-- Content will be injected here -->
+                <div style="text-align:center; padding: 2rem;">Loading documentation...</div>
+            </div>
+            <div class="footer">
+                &copy; 2025 clip.moukaeritai.work
+            </div>
         </div>
-        <div class="footer">
-            &copy; 2025 clip.moukaeritai.work
-        </div>
-    </div>
 
-    <script>
-        fetch('index.md')
-            .then(response => {
-                if (!response.ok) throw new Error("Failed to load documentation");
-                return response.text();
-            })
-            .then(text => {
-                document.getElementById('content').innerHTML = marked.parse(text);
-            })
-            .catch(err => {
-                document.getElementById('content').innerHTML = `<p style="color:red">Error loading documentation: ${err.message}</p>`;
-            });
-    </script>
+        <script>
+            fetch('index.md')
+                .then(response => {
+                    if (!response.ok) throw new Error("Failed to load documentation");
+                    return response.text();
+                })
+                .then(text => {
+                    document.getElementById('content').innerHTML = marked.parse(text);
+                })
+                .catch(err => {
+                    document.getElementById('content').innerHTML = `<p style="color:red">Error loading documentation: ${err.message}</p>`;
+                });
+        </script>
 </body>
 
 </html>
