@@ -18,6 +18,7 @@ Poetry を使ってパッケージ管理する。
 clip.moukaeritai.work ではすでにApacheが動いており、
 TLSの終端もApacheが行う。
 このウェブアプリケーションはApacheからリバースプロキシで接続されることを想定している。
+Apacheからは 8000/tcp で平文で接続される。
 
 # 認証
 
@@ -27,7 +28,7 @@ TLSの終端もApacheが行う。
 # REST API
 https://clip.moukaeritai.work/index.html がランディングページである。
 使い方は https://clip.moukaeritai.work/index.md に記載する。
-https://clip.moukaeritai.work/index.html は同じディレクトリにある index.md を読み込みレンダリングする。
+https://clip.moukaeritai.work/index.html は同じディレクトリにある index.md を読み込み、ブラウザ側（フロントエンド）でレンダリングする。
 
 
 クリップボードの各アイテムは https://clip.moukaeritai.work/<UUIDv4>/<key> という形式で提供する。
@@ -36,6 +37,13 @@ https://clip.moukaeritai.work/<UUIDv4>/<key> から文字列をGETできる。
 https://clip.moukaeritai.work/<UUIDv4>/<key> をDELETEできる。
 https://clip.moukaeritai.work/<UUIDv4> に文字列をPOSTしたときには、その文字列のSHA1ハッシュ値が自動的にkeyとして採用される。POSTのレスポンスにはそのkeyが含まれる。
 つまりREST APIも提供する。
+
+# データ制約
+
+- 投入できる値は任意の文字列とし、文字コードは UTF-8 を想定する。
+- 1つのキーに対する値の最大サイズは 1MB とする。
+- キーは任意の文字列とするが、最大長は 100文字 とする。
+- これらの制限値（1MB, 100文字）は将来変更する可能性があるため、コード内にハードコードせず、設定可能な定数として扱う。
 
 
 # MCP
