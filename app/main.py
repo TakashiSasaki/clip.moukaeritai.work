@@ -48,6 +48,21 @@ def get_test_html():
         return FileResponse(path)
     raise HTTPException(status_code=404, detail="test.html not found")
 
+@app.get("/openapi.json")
+def get_openapi_json():
+    path = os.path.join(STATIC_DIR, "openapi.json")
+    if os.path.exists(path):
+        return FileResponse(path)
+    raise HTTPException(status_code=404, detail="openapi.json not found")
+
+@app.get("/docs")
+def get_docs():
+    return FileResponse(os.path.join(STATIC_DIR, "docs", "index.html"))
+
+@app.get("/docs/index.html")
+def get_docs_index():
+    return FileResponse(os.path.join(STATIC_DIR, "docs", "index.html"))
+
 @app.get("/")
 def read_root():
     # Redirect or just serve index.html? spec doesn't mandate root behavior, 
