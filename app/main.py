@@ -26,7 +26,7 @@ def get_status():
     db_stats = get_db_stats()
     return {
         "status": "running",
-        "version": "1.0.0",
+        "version": "0.1.1",
         "uptime_seconds": uptime,
         "database": db_stats
     }
@@ -50,12 +50,12 @@ def get_index_md():
         return FileResponse(path)
     raise HTTPException(status_code=404, detail="index.md not found")
 
-@app.get("/test.html")
-def get_test_html():
-    path = os.path.join(STATIC_DIR, "test.html")
+@app.get("/rest-test.html")
+def get_rest_test_html():
+    path = os.path.join(STATIC_DIR, "rest-test.html")
     if os.path.exists(path):
         return FileResponse(path)
-    raise HTTPException(status_code=404, detail="test.html not found")
+    raise HTTPException(status_code=404, detail="rest-test.html not found")
 
 @app.get("/openapi.json")
 def get_openapi_json():

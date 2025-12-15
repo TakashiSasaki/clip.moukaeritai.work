@@ -1,9 +1,9 @@
 [project]
 name = "clip-moukaeritai-work"
-version = "0.1.0"
+version = "0.1.1"
 description = "Web clipboard application"
 authors = [
-    {name = "Antigravity"}
+    {name = "Takashi Sasaki", email = "takashi316@gmail.com"}
 ]
 readme = "README.md"
 requires-python = "^3.12"
@@ -11,6 +11,7 @@ dependencies = [
     "fastapi (>=0.124.4,<0.125.0)",
     "uvicorn (>=0.38.0,<0.39.0)"
 ]
+urls = { Homepage = "https://x.com/TakashiSasaki" }
 
 
 [build-system]
