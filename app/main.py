@@ -66,11 +66,11 @@ def get_openapi_json():
 
 @app.get("/docs")
 def get_docs():
-    return FileResponse(os.path.join(STATIC_DIR, "docs", "index.html"))
+    return FileResponse(os.path.join(STATIC_DIR, "openapi.html"))
 
-@app.get("/docs/index.html")
-def get_docs_index():
-    return FileResponse(os.path.join(STATIC_DIR, "docs", "index.html"))
+@app.get("/openapi.html")
+def get_openapi_html():
+    return FileResponse(os.path.join(STATIC_DIR, "openapi.html"))
 
 @app.get("/status.html")
 def get_status_html():

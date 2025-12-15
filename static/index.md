@@ -10,7 +10,7 @@ No login required. Security relies on the mathematical improbability of guessing
 
 ## How to Use
 
-[API Documentation](/docs) | [Test Page](/test.html)
+[API Documentation](/openapi.html) | [Test Page](/test.html)
 
 ### 1. Get a UUID
 You need a Version 4 UUID.
