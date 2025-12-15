@@ -42,6 +42,7 @@
 | **GET** | `/<key>` | 文字列を取得する。 | Content-Type は `text/plain` 固定。 |
 | **DELETE** | `/<key>` | アイテムを削除する。 | |
 | **POST** | `/` | 文字列を新規保存する。 | キーは文字列の SHA1 ハッシュ値が自動生成される。<br>レスポンスは生成されたキーを含むJSONを返却する。 |
+| **GET** | `/` | キーの一覧を取得する。 | UUIDv4を知っているユーザー＝所有者とみなす。<br>レスポンスはキーのリストを含むJSONを返却する。 |
 
 ### 管理・その他 API
 *   **Status**: `https://clip.moukaeritai.work/status`
