@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clip API Tester</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f0f13;
+            --text-color: #e0e0e0;
+            --accent-color: #10b981;
+            /* Emerald for test page to differentiate */
+            --accent-glow: rgba(16, 185, 129, 0.4);
+            --danger-color: #ef4444;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        h1 {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        input,
+        textarea,
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            cursor: pointer;
+            background: var(--accent-color);
+            color: #000;
+            font-weight: 600;
+            border: none;
+            transition: 0.2s;
+        }
+
+        button.secondary {
+            background: #3f3f46;
+            color: #fff;
+        }
+
+        button.danger {
+            background: var(--danger-color);
+            color: #fff;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        .response-area {
+            background: #000;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #a78bfa;
+        }
+
+        .status-ok {
+            color: var(--accent-color);
+        }
+
+        .status-err {
+            color: var(--danger-color);
+        }
+
+        .row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .row input {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>API Interaction Tester</h1>
+
+        <!-- Settings -->
+        <div class="card full-width">
+            <h2>Configuration</h2>
+            <label>Target UUID (Version 4)</label>
+            <div class="row">
+                <input type="text" id="uuidInput" placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000">
+                <button class="secondary" style="width: auto;" onclick="generateUUID()">Gen UUID</button>
+            </div>
+        </div>
+
+        <!-- Write Operations -->
+        <div class="card">
+            <h2>Write / Store</h2>
+
+            <label>Key (Optional for POST)</label>
+            <input type="text" id="keyInput" placeholder="my-key">
+
+            <label>Value / Content</label>
+            <textarea id="valueInput" placeholder="Enter text content here..."></textarea>
+
+            <div class="row">
+                <button onclick="doPut()">PUT (Use Key)</button>
+                <button class="secondary" onclick="doPost()">POST (Auto Key)</button>
+            </div>
+        </div>
+
+        <!-- Read Operations -->
+        <div class="card">
+            <h2>Read / Manage</h2>
+            <div class="row">
+                <button onclick="doGetList()">GET List (All Keys)</button>
+            </div>
+            <div class="row">
+                <button class="secondary" onclick="doGetItem()">GET Item (Use Key)</button>
+                <button class="danger" onclick="doDelete()">DELETE (Use Key)</button>
+            </div>
+
+            <label>Response / Output</label>
+            <div id="output" class="response-area">// Logs will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        // Utils
+        function log(msg, type = 'info') {
+            const out = document.getElementById('output');
+            const ts = new Date().toLocaleTimeString();
+            let color = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#a78bfa');
+            out.innerHTML = `<div style="color:${color}">[${ts}] ${msg}</div>` + out.innerHTML;
+        }
+
+        function generateUUID() {
+            const uuid = crypto.randomUUID();
+            document.getElementById('uuidInput').value = uuid;
+            log(`Generated UUID: ${uuid}`, 'success');
+        }
+
+        function getBaseUrl() {
+            // Assume running on root
+            return '';
+        }
+
+        async function apiCall(method, path, body = null, contentType = 'text/plain') {
+            const uuid = document.getElementById('uuidInput').value.trim();
+            if (!uuid) {
+                log('Error: UUID is required', 'error');
+                return;
+            }
+
+            const url = `${getBaseUrl()}/${uuid}${path}`;
+            log(`Sending ${method} ${url}...`);
+
+            try {
+                const options = {
+                    method: method,
+                    headers: {}
+                };
+
+                if (body !== null) {
+                    options.body = body;
+                    // For this API, PUT/POST body is just the string, but we can set content-type if we want,
+                    // though spec says it accepts "any string". 
+                    // Requests from browser fetch usually default to text/plain if body is string.
+                }
+
+                const res = await fetch(url, options);
+                const status = res.status;
+                let text = await res.text();
+
+                let displayMsg = `Status: ${status}\n`;
+
+                try {
+                    // Try parsing JSON for prettier display
+                    const json = JSON.parse(text);
+                    displayMsg += JSON.stringify(json, null, 2);
+                } catch {
+                    displayMsg += text;
+                }
+
+                log(displayMsg, res.ok ? 'success' : 'error');
+
+            } catch (e) {
+                log(`Network Error: ${e.message}`, 'error');
+            }
+        }
+
+        // Handlers
+        function doPut() {
+            const key = document.getElementById('keyInput').value.trim();
+            const val = document.getElementById('valueInput').value;
+            if (!key) return log('Error: Key is required for PUT', 'error');
+            apiCall('PUT', `/${key}`, val);
+        }
+
+        function doPost() {
+            const val = document.getElementById('valueInput').value;
+            apiCall('POST', ``, val);
+        }
+
+        function doGetList() {
+            apiCall('GET', ``);
+        }
+
+        function doGetItem() {
+            const key = document.getElementById('keyInput').value.trim();
+            if (!key) return log('Error: Key is required for GET Item', 'error');
+            apiCall('GET', `/${key}`);
+        }
+
+        function doDelete() {
+            const key = document.getElementById('keyInput').value.trim();
+            if (!key) return log('Error: Key is required for DELETE', 'error');
+            if (!confirm('Are you sure you want to delete this item?')) return;
+            apiCall('DELETE', `/${key}`);
+        }
+
+        // Auto-gen on load if empty
+        if (!document.getElementById('uuidInput').value) {
+            // generateUUID(); 
+        }
+    </script>
+</body>
+
+</html>

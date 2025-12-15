@@ -41,6 +41,13 @@ def get_index_md():
         return FileResponse(path)
     raise HTTPException(status_code=404, detail="index.md not found")
 
+@app.get("/test.html")
+def get_test_html():
+    path = os.path.join(STATIC_DIR, "test.html")
+    if os.path.exists(path):
+        return FileResponse(path)
+    raise HTTPException(status_code=404, detail="test.html not found")
+
 @app.get("/")
 def read_root():
     # Redirect or just serve index.html? spec doesn't mandate root behavior, 
