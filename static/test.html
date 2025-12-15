@@ -182,6 +182,14 @@
             <label>Response / Output</label>
             <div id="output" class="response-area">// Logs will appear here...</div>
         </div>
+
+        <!-- Automatic Test Suite -->
+        <div class="card full-width" style="border-color: var(--accent-color);">
+            <h2 style="color: var(--accent-color);">Automatic Test Suite</h2>
+            <p style="font-size: 0.9rem; color: #aaa;">Runs a sequence of tests: PUT, GET, POST, List, Delete, and
+                validation checks.</p>
+            <button onclick="runAutoTest()" style="font-size: 1.1rem; padding: 1rem;">▶ Run All Tests</button>
+        </div>
     </div>
 
     <script>
@@ -197,14 +205,31 @@
             const uuid = crypto.randomUUID();
             document.getElementById('uuidInput').value = uuid;
             log(`Generated UUID: ${uuid}`, 'success');
+            return uuid;
         }
 
         function getBaseUrl() {
-            // Assume running on root
             return '';
         }
 
-        async function apiCall(method, path, body = null, contentType = 'text/plain') {
+        // Helper for raw fetch to return object for testing
+        async function fetchAPI(method, path, body = null, uuidOverride = null) {
+            const uuid = uuidOverride || document.getElementById('uuidInput').value.trim();
+            if (!uuid) throw new Error("UUID required");
+
+            const url = `${getBaseUrl()}/${uuid}${path}`;
+            const options = { method: method, headers: {} };
+            if (body !== null) options.body = body;
+
+            const res = await fetch(url, options);
+            const text = await res.text();
+            let json = null;
+            try { json = JSON.parse(text); } catch { }
+
+            return { status: res.status, text, json, ok: res.ok };
+        }
+
+        async function apiCall(method, path, body = null) {
             const uuid = document.getElementById('uuidInput').value.trim();
             if (!uuid) {
                 log('Error: UUID is required', 'error');
@@ -222,9 +247,6 @@
 
                 if (body !== null) {
                     options.body = body;
-                    // For this API, PUT/POST body is just the string, but we can set content-type if we want,
-                    // though spec says it accepts "any string". 
-                    // Requests from browser fetch usually default to text/plain if body is string.
                 }
 
                 const res = await fetch(url, options);
@@ -245,6 +267,67 @@
 
             } catch (e) {
                 log(`Network Error: ${e.message}`, 'error');
+            }
+        }
+
+        // --- Auto Test Logic ---
+        async function runAutoTest() {
+            const out = document.getElementById('output');
+            out.innerHTML = ''; // Clear log
+            log("=== Starting Automatic Test Suite ===", 'info');
+
+            try {
+                // 1. Setup
+                const testUUID = crypto.randomUUID();
+                log(`Test Context UUID: ${testUUID}`, 'info');
+
+                // 2. PUT Test
+                const putKey = "auto-test-key";
+                const putVal = "Hello Auto Test";
+                log(`[Test 1] PUT /${putKey} ...`);
+                const putRes = await fetchAPI('PUT', `/${putKey}`, putVal, testUUID);
+                if (!putRes.ok) throw new Error(`PUT failed: ${putRes.status}`);
+                log("PUT OK", 'success');
+
+                // 3. GET Item Test
+                log(`[Test 2] GET /${putKey} ...`);
+                const getRes = await fetchAPI('GET', `/${putKey}`, null, testUUID);
+                if (getRes.text !== putVal) throw new Error(`GET content mismatch. Expected '${putVal}', got '${getRes.text}'`);
+                log("GET Item OK", 'success');
+
+                // 4. POST Test
+                const postVal = "Random Auto Content " + Date.now();
+                log(`[Test 3] POST / ...`);
+                const postRes = await fetchAPI('POST', ``, postVal, testUUID);
+                if (!postRes.ok || !postRes.json.key) throw new Error("POST failed or no key returned");
+                const generatedKey = postRes.json.key;
+                log(`POST OK. Generated Key: ${generatedKey}`, 'success');
+
+                // 5. GET List Test
+                log(`[Test 4] GET / (List) ...`);
+                const listRes = await fetchAPI('GET', ``, null, testUUID);
+                if (!listRes.json.keys || !Array.isArray(listRes.json.keys)) throw new Error("List format invalid");
+                if (!listRes.json.keys.includes(putKey) || !listRes.json.keys.includes(generatedKey)) throw new Error("List missing keys");
+                log(`GET List OK. Found ${listRes.json.keys.length} keys.`, 'success');
+
+                // 6. DELETE Test
+                log(`[Test 5] DELETE /${putKey} ...`);
+                const delRes = await fetchAPI('DELETE', `/${putKey}`, null, testUUID);
+                if (!delRes.ok) throw new Error("DELETE failed");
+                log("DELETE OK", 'success');
+
+                // 7. Verify Deletion
+                log(`[Test 6] Verify Deletion (GET /${putKey}) ...`);
+                const verifyRes = await fetchAPI('GET', `/${putKey}`, null, testUUID);
+                if (verifyRes.status !== 404) throw new Error(`Expected 404 for deleted item, got ${verifyRes.status}`);
+                log("Verify Deletion OK", 'success');
+
+                // Success!!
+                log("=== All Tests Passed Successfully! ===", 'success');
+
+            } catch (err) {
+                log(`!!! TEST FAILED: ${err.message} !!!`, 'error');
+                console.error(err);
             }
         }
 
