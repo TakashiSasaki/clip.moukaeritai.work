@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clip System Status</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f0f13;
+            --text-color: #e0e0e0;
+            --accent-color: #3b82f6;
+            /* Blue for admin/system status */
+            --accent-glow: rgba(59, 130, 246, 0.4);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .metric-item {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            color: #fff;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            margin-top: 1rem;
+        }
+
+        /* Loading animation */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--accent-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>System Status</h1>
+
+        <div class="status-card" id="status-panel">
+            <div class="spinner" id="loader"></div>
+
+            <div id="content" style="display: none;">
+                <div style="text-align: center;">
+                    <div class="status-badge">● SYSTEM ONLINE</div>
+                    <p style="color:#aaa; margin-top:-0.5rem;">Version <span id="version">-</span></p>
+                </div>
+
+                <hr style="border:0; border-top:1px solid var(--border-color); margin: 2rem 0;">
+
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">Uptime</div>
+                        <div class="metric-value" id="uptime">-</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">DB Size</div>
+                        <div class="metric-value" id="dbSize">-</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Total Items</div>
+                        <div class="metric-value" id="totalItems">-</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Active UUIDs</div>
+                        <div class="metric-value" id="activeUUIDs">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error" style="display: none; color: #ef4444; text-align: center;">
+                Failed to fetch status.
+            </div>
+        </div>
+
+        <div class="footer">
+            <button onclick="fetchStatus()"
+                style="background:none; border:none; color:inherit; cursor:pointer; text-decoration:underline;">Refresh</button>
+        </div>
+    </div>
+
+    <script>
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        function formatUptime(seconds) {
+            const d = Math.floor(seconds / (3600 * 24));
+            const h = Math.floor(seconds % (3600 * 24) / 3600);
+            const m = Math.floor(seconds % 3600 / 60);
+            const s = Math.floor(seconds % 60);
+
+            let parts = [];
+            if (d > 0) parts.push(d + 'd');
+            if (h > 0) parts.push(h + 'h');
+            if (m > 0) parts.push(m + 'm');
+            parts.push(s + 's');
+
+            return parts.join(' ');
+        }
+
+        async function fetchStatus() {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            const error = document.getElementById('error');
+
+            loader.style.display = 'block';
+            content.style.display = 'none';
+            error.style.display = 'none';
+
+            try {
+                const res = await fetch('/status');
+                if (!res.ok) throw new Error('Network response was not ok');
+                const data = await res.json();
+
+                document.getElementById('version').textContent = data.version;
+                document.getElementById('uptime').textContent = formatUptime(data.uptime_seconds);
+                document.getElementById('dbSize').textContent = formatBytes(data.database.size_bytes);
+                document.getElementById('totalItems').textContent = data.database.total_items;
+                document.getElementById('activeUUIDs').textContent = data.database.total_uuids;
+
+                loader.style.display = 'none';
+                content.style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                loader.style.display = 'none';
+                error.style.display = 'block';
+            }
+        }
+
+        // Init
+        fetchStatus();
+        // Auto refresh every 30s
+        setInterval(fetchStatus, 30000);
+    </script>
+</body>
+
+</html>

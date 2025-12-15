@@ -72,6 +72,13 @@ def get_docs():
 def get_docs_index():
     return FileResponse(os.path.join(STATIC_DIR, "docs", "index.html"))
 
+@app.get("/status.html")
+def get_status_html():
+    path = os.path.join(STATIC_DIR, "status.html")
+    if os.path.exists(path):
+        return FileResponse(path)
+    raise HTTPException(status_code=404, detail="status.html not found")
+
 @app.get("/")
 def read_root():
     # Redirect or just serve index.html? spec doesn't mandate root behavior, 
