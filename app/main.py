@@ -66,11 +66,17 @@ def get_openapi_json():
 
 @app.get("/docs")
 def get_docs():
-    return FileResponse(os.path.join(STATIC_DIR, "openapi.html"))
+    path = os.path.join(STATIC_DIR, "openapi.html")
+    if os.path.exists(path):
+        return FileResponse(path)
+    raise HTTPException(status_code=404, detail="openapi.html not found")
 
 @app.get("/openapi.html")
 def get_openapi_html():
-    return FileResponse(os.path.join(STATIC_DIR, "openapi.html"))
+    path = os.path.join(STATIC_DIR, "openapi.html")
+    if os.path.exists(path):
+        return FileResponse(path)
+    raise HTTPException(status_code=404, detail="openapi.html not found")
 
 @app.get("/status.html")
 def get_status_html():

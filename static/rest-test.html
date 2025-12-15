@@ -134,6 +134,24 @@
         .row input {
             margin-bottom: 0;
         }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .row {
+                flex-wrap: wrap;
+            }
+
+            .row button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
