@@ -37,6 +37,7 @@ https://clip.moukaeritai.work/<UUIDv4>/<key> から文字列をGETできる。�
 https://clip.moukaeritai.work/<UUIDv4>/<key> をDELETEできる。
 https://clip.moukaeritai.work/<UUIDv4> に文字列をPOSTしたときには、その文字列のSHA1ハッシュ値が自動的にkeyとして採用される。POSTのレスポンスはJSON形式でキーを返却する。
 つまりREST APIも提供する。
+https://clip.moukaeritai.work/status で動作状態を確認できる。表示内容は未定。
 
 # データ制約
 
