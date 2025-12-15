@@ -1,72 +1,73 @@
-# このリポジトリで開発しているもの
+# 開発方針 (Development Policy)
 
-このリポジトリでは、ウェブ上のクリップボードとして、認証なしのデータストアを提供するためのウェブアプリケーション開発を行う。
+このドキュメントは `clip.moukaeritai.work` の開発方針と要件を定義する。
 
-このウェブアプリケーションのドメインは clip.moukaeritai.work である。
+## 1. 概要 (Overview)
+*   **目的**: ウェブ上のクリップボードとして、認証なしのデータストアを提供する。
+*   **ドメイン**: `clip.moukaeritai.work`
 
-# 使用言語
+## 2. 技術スタック (Technology Stack)
+*   **言語**: Python 3.12
+*   **フレームワーク**: FastAPI
+*   **パッケージ管理**: Poetry
+*   **データベース**: SQLite (サーバーレス、単一ファイル)
 
-Python 3.12 を想定している。
-FastAPIを使用することを想定している。
+## 3. アーキテクチャとインフラ (Architecture & Infrastructure)
+*   **リバースプロキシ**: Apache が前段に配置される。
+    *   TLS終端は Apache が行う。
+    *   Apache からアプリケーションへは `8000/tcp` で平文接続される。
+    *   通信経路: User -> HTTPS -> Apache -> HTTP -> FastAPI (This App)
+*   **セキュリティ設定**:
+    *   HTTPS だけでなく HTTP での通信も許容する。
 
-# パッケージ管理
+## 4. 認証とセキュリティモデル (Auth & Security Model)
+*   **認証**: なし (No Authentication)
+*   **セキュリティモデル**:
+    *   ユーザーが生成した **UUIDv4** をURLに含めることでアクセス制御を行う。
+    *   UUIDv4 の予測不可能性のみに依存するセキュリティモデルである。
 
-Poetry を使ってパッケージ管理する。
+## 5. API仕様 (REST API)
 
-# Apache との関係
+### ランディングページ
+*   **URL**: `https://clip.moukaeritai.work/index.html`
+*   **機能**: 同一ディレクトリにある `index.md` を読み込み、**ブラウザ側（フロントエンド）** でレンダリングして表示する。
+*   **ドキュメント**: 使い方は `index.md` に記載する。
 
-clip.moukaeritai.work ではすでにApacheが動いており、
-TLSの終端もApacheが行う。
-このウェブアプリケーションはApacheからリバースプロキシで接続されることを想定している。
-Apacheからは 8000/tcp で平文で接続される。
+### クリップボード操作 API
+ベースパス: `https://clip.moukaeritai.work/<UUIDv4>`
 
-# 認証
+| メソッド | パス | 説明 | 備考 |
+| :--- | :--- | :--- | :--- |
+| **PUT** | `/<key>` | 任意の文字列を保存する。 | |
+| **GET** | `/<key>` | 文字列を取得する。 | Content-Type は `text/plain` 固定。 |
+| **DELETE** | `/<key>` | アイテムを削除する。 | |
+| **POST** | `/` | 文字列を新規保存する。 | キーは文字列の SHA1 ハッシュ値が自動生成される。<br>レスポンスは生成されたキーを含むJSONを返却する。 |
 
-認証は行わない。
-ユーザーが生成したUUIDv4を含む十分に予測不可能なURLであることを想定しているからである。
+### 管理・その他 API
+*   **Status**: `https://clip.moukaeritai.work/status`
+    *   動作確認用エンドポイント。表示内容は未定。
+*   **MCP**: `https://clip.moukaeritai.work/mcp`
+    *   Model Context Protocol (MCP) 向けのエンドポイント。
+    *   標準仕様に従ってツール等の定義を実装する。
 
-# REST API
-https://clip.moukaeritai.work/index.html がランディングページである。
-使い方は https://clip.moukaeritai.work/index.md に記載する。
-https://clip.moukaeritai.work/index.html は同じディレクトリにある index.md を読み込み、ブラウザ側（フロントエンド）でレンダリングする。
+## 6. データ制約とエラーハンドリング (Constraints & Error Handling)
+コード内にハードコードせず、設定可能な定数として扱うこと。
 
+*   **文字コード**: UTF-8
+*   **値 (Value) の制限**:
+    *   任意の文字列。
+    *   最大サイズ: **1MB** / key
+*   **キー (Key) の制限**:
+    *   任意の文字列。
+    *   最大長: **100文字**
+*   **エラーハンドリング**:
+    *   制限超過時: **HTTP 413 (Payload Too Large)** を返す。
+    *   エラー詳細: JSON形式でレスポンスする。
+    *   *Note*: エラーおよびPOST成功時のJSONスキーマは実装時に決定する。
 
-クリップボードの各アイテムは https://clip.moukaeritai.work/<UUIDv4>/<key> という形式で提供する。
-https://clip.moukaeritai.work/<UUIDv4>/<key> に任意の文字列をPUTできる。
-https://clip.moukaeritai.work/<UUIDv4>/<key> から文字列をGETできる。この際の Content-Type は text/plain 固定とする。
-https://clip.moukaeritai.work/<UUIDv4>/<key> をDELETEできる。
-https://clip.moukaeritai.work/<UUIDv4> に文字列をPOSTしたときには、その文字列のSHA1ハッシュ値が自動的にkeyとして採用される。POSTのレスポンスはJSON形式でキーを返却する。
-つまりREST APIも提供する。
-https://clip.moukaeritai.work/status で動作状態を確認できる。表示内容は未定。
+## 7. データベース運用 (Database Operations)
+*   定期的なクリーンアップが行われるが、ロジックはこのアプリケーション**外**のプロセス (cron等) が担当する。
+*   本アプリケーションにはクリーンアップ機能を実装しない。
 
-# データ制約
-
-- 投入できる値は任意の文字列とし、文字コードは UTF-8 を想定する。
-- 1つのキーに対する値の最大サイズは 1MB とする。
-- キーは任意の文字列とするが、最大長は 100文字 とする。
-- これらの制限値（1MB, 100文字）は将来変更する可能性があるため、コード内にハードコードせず、設定可能な定数として扱う。
-- キー長や値のサイズ制限を超過した場合は、HTTP 413 (Payload Too Large) を返す。
-- エラーの詳細はJSON形式でレスポンスする。
-- なお、エラーレスポンスのJSONスキーマや、POST成功時にキーを返却する際のJSONスキーマは現時点では未定とし、実装時に決定する。
-
-
-# MCP
-https://clip.moukaeritai.work/mcp 
-でMCP （Model Context Protocol）向けのエンドポイントを提供する。
-MCPとして機能するために必要なツールの説明なども
-MCPの標準仕様に従って実装する。
-
-# データベース
-
-バックエンドデータベースにはサーバを使わず、SQLite ファイルを使う。
-
-# セキュリティ
-
-通信には HTTPS だけでなく HTTP も許容する。
-なお、定期的にデータベースはクリーンアップされるが、
-クリーンアップのロジックはこのウェブアプリケーション以外のcronで起動されるプロセスから行うため、
-このウェブアプリケーションではデータベースのクリーンアップを実装しない。
-
-# コードに関するその他の注意点
-
-localhost でテストできるように、コードにはFQDNをハードコードしない。
+## 8. 開発上の注意 (Development Notes)
+*   **FQDN**: `localhost` でのテストを容易にするため、コード内にFQDN (`clip.moukaeritai.work`) をハードコードしない。
