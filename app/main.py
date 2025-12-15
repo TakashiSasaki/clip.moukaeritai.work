@@ -3,12 +3,14 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import hashlib
 import os
+import time
 
 from app.config import MAX_VALUE_SIZE_BYTES, MAX_KEY_LENGTH
 from app.utils import is_valid_uuid4
-from app.database import init_db, put_item, get_item, delete_item, list_keys
+from app.database import init_db, put_item, get_item, delete_item, list_keys, get_db_stats
 
 app = FastAPI(title="Clip Moukaeritai")
+START_TIME = time.time()
 
 # Initialize DB on startup
 @app.on_event("startup")
@@ -20,7 +22,14 @@ STATIC_DIR = "static"
 
 @app.get("/status")
 def get_status():
-    return {"status": "running"}
+    uptime = int(time.time() - START_TIME)
+    db_stats = get_db_stats()
+    return {
+        "status": "running",
+        "version": "1.0.0",
+        "uptime_seconds": uptime,
+        "database": db_stats
+    }
 
 @app.get("/mcp")
 def get_mcp():

@@ -1,6 +1,8 @@
 import sqlite3
 from typing import List, Optional, Protocol
 
+import os
+
 DB_PATH = "clip.db"
 
 def get_db_connection():
@@ -59,3 +61,25 @@ def list_keys(uuid: str) -> List[str]:
     rows = cursor.fetchall()
     conn.close()
     return [row['key'] for row in rows]
+
+def get_db_stats():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT COUNT(*) FROM clipboard')
+    total_items = cursor.fetchone()[0]
+    
+    cursor.execute('SELECT COUNT(DISTINCT uuid) FROM clipboard')
+    total_uuids = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    size_bytes = 0
+    if os.path.exists(DB_PATH):
+        size_bytes = os.path.getsize(DB_PATH)
+        
+    return {
+        "total_items": total_items,
+        "total_uuids": total_uuids,
+        "size_bytes": size_bytes
+    }
