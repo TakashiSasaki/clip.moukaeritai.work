@@ -11,3 +11,4 @@ venv/
 *.db
 *.sqlite
 .DS_Store
+commit_message.txt

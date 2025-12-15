@@ -1,5 +1,0 @@
-Add test.html for API verification
-
-Created `static/test.html` and exposed it via `/test.html` endpoint.
-- Provides a GUI for UUID generation, PUT, POST, GET (Item/List), and DELETE operations.
-- Useful for visual verification of the API functionality during development.
