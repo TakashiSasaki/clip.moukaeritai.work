@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clip.Moukaeritai.Work</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f0f13;
+            --text-color: #e0e0e0;
+            --accent-color: #7c3aed;
+            --accent-glow: rgba(124, 58, 237, 0.4);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --code-bg: #1e1e24;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Background shapes */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        .shape-1 { width: 400px; height: 400px; background: #4c1d95; top: -100px; left: -100px; }
+        .shape-2 { width: 300px; height: 300px; background: #be185d; bottom: 0; right: 0; animation-delay: -5s; }
+
+        @keyframes float {
+            from { transform: translate(0, 0); }
+            to { transform: translate(30px, 30px); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Markdown Styles */
+        h1, h2, h3 {
+            color: #fff;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 { 
+            font-size: 3rem; 
+            font-weight: 600; 
+            background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 0;
+        }
+
+        a { color: var(--accent-color); text-decoration: none; transition: 0.2s; }
+        a:hover { color: #fff; text-shadow: 0 0 8px var(--accent-glow); }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #fca5a5;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: #e5e5e5;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            margin: 2rem 0;
+            padding-left: 1.5rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: var(--border-color);
+            margin: 3rem 0;
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <div class="container">
+        <div class="glass-card" id="content">
+            <!-- Content will be injected here -->
+            <div style="text-align:center; padding: 2rem;">Loading documentation...</div>
+        </div>
+        <div class="footer">
+            &copy; 2025 clip.moukaeritai.work
+        </div>
+    </div>
+
+    <script>
+        fetch('index.md')
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to load documentation");
+                return response.text();
+            })
+            .then(text => {
+                document.getElementById('content').innerHTML = marked.parse(text);
+            })
+            .catch(err => {
+                document.getElementById('content').innerHTML = `<p style="color:red">Error loading documentation: ${err.message}</p>`;
+            });
+    </script>
+</body>
+</html>

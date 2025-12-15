@@ -1,0 +1,4 @@
+
+# Data Constraints
+MAX_VALUE_SIZE_BYTES = 1024 * 1024  # 1MB
+MAX_KEY_LENGTH = 100
